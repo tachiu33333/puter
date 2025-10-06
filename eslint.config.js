@@ -87,6 +87,7 @@ export default [
                 "logout": true,
                 "is_email": true,
                 "select_ctxmenu_item": true,
+                "update_profile": true,
             }
         }
     },
