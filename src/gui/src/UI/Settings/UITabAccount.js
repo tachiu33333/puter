@@ -37,6 +37,10 @@ export default {
         h += `<div style="overflow: hidden; display: flex; margin-bottom: 20px; flex-direction: column; align-items: center;">`;
             h += `<div class="profile-picture change-profile-picture" style="background-image: url('${html_encode(window.user?.profile?.picture ?? window.icons['profile.svg'])}');">`;
             h += `</div>`;
+            // show remove button only if user has a custom profile picture
+            if(window.user?.profile?.picture){
+                h += `<button class="button remove-profile-picture" style="margin-top: 10px;">${i18n('remove_profile_picture')}</button>`;
+            }
         h += `</div>`;
 
         // change password button
@@ -150,6 +154,25 @@ export default {
             });    
         })
 
+        $el_window.find('.remove-profile-picture').on('click', async function (e) {
+            // remove profile picture by updating profile with empty/null picture
+            const default_picture = window.icons['profile.svg'];
+            
+            // update profile picture in the UI
+            $el_window.find('.profile-picture').css('background-image', 'url(' + html_encode(default_picture) + ')');
+            $('.profile-image').css('background-image', 'url(' + html_encode(default_picture) + ')');
+            $('.profile-image').removeClass('profile-image-has-picture');
+            
+            // update window.user.profile to remove the picture
+            delete window.user.profile.picture;
+            
+            // update profile file to remove the picture
+            update_profile(window.user.username, {picture: null});
+            
+            // hide the remove button since there's no custom picture anymore
+            $(this).hide();
+        })
+
         $el_window.on('file_opened', async function(e){
             let selected_file = Array.isArray(e.detail) ? e.detail[0] : e.detail;
             // set profile picture
@@ -174,6 +197,25 @@ export default {
                     $('.profile-image').addClass('profile-image-has-picture');
                     // update profile picture
                     update_profile(window.user.username, {picture: base64data})
+                    
+                    // show the remove button if it was hidden
+                    if($el_window.find('.remove-profile-picture').length === 0){
+                        // button doesn't exist, add it
+                        $el_window.find('.profile-picture').parent().append(`<button class="button remove-profile-picture" style="margin-top: 10px;">${i18n('remove_profile_picture')}</button>`);
+                        // attach the click handler
+                        $el_window.find('.remove-profile-picture').on('click', async function (e) {
+                            const default_picture = window.icons['profile.svg'];
+                            $el_window.find('.profile-picture').css('background-image', 'url(' + html_encode(default_picture) + ')');
+                            $('.profile-image').css('background-image', 'url(' + html_encode(default_picture) + ')');
+                            $('.profile-image').removeClass('profile-image-has-picture');
+                            delete window.user.profile.picture;
+                            update_profile(window.user.username, {picture: null});
+                            $(this).hide();
+                        });
+                    } else {
+                        // button exists but might be hidden, show it
+                        $el_window.find('.remove-profile-picture').show();
+                    }
                 }
             }
         })
