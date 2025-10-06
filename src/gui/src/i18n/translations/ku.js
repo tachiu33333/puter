@@ -259,6 +259,7 @@ const ku = {
     refresh: "بوژانەوە",
     release_address_confirmation: `دڵنیایت کە ئەتەوێت ئەم ناونیشانە بۆ هەڵگرتن؟`,
     remove_from_taskbar: "لابردن لە تاکسبار",
+        remove_profile_picture: 'Wêneyê profîlê rake',
     rename: "ناونانەوە",
     repeat: "دووبارەکردنەوە",
     replace: "لە نوێکردنەوە",
