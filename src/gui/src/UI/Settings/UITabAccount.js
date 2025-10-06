@@ -155,22 +155,47 @@ export default {
         })
 
         $el_window.find('.remove-profile-picture').on('click', async function (e) {
-            // remove profile picture by updating profile with empty/null picture
-            const default_picture = window.icons['profile.svg'];
-            
-            // update profile picture in the UI
-            $el_window.find('.profile-picture').css('background-image', 'url(' + html_encode(default_picture) + ')');
-            $('.profile-image').css('background-image', 'url(' + html_encode(default_picture) + ')');
-            $('.profile-image').removeClass('profile-image-has-picture');
-            
-            // update window.user.profile to remove the picture
-            delete window.user.profile.picture;
-            
-            // update profile file to remove the picture
-            update_profile(window.user.username, {picture: null});
-            
-            // hide the remove button since there's no custom picture anymore
-            $(this).hide();
+            // Show confirmation dialog before removing profile picture
+            UIWindow({
+                title: i18n('remove_profile_picture'),
+                body: `<div style='padding:10px;'>${i18n('Are you sure you want to remove your profile picture?')}</div>`,
+                buttons: [
+                    {text: i18n('Cancel'), value: 'cancel'},
+                    {text: i18n('Remove'), value: 'remove', class: 'danger'}
+                ],
+                window_options: {
+                    parent_uuid: $el_window.attr('data-element_uuid'),
+                    disable_parent_window: true,
+                    parent_center: true,
+                },
+                callback: async (result) => {
+                    if(result !== 'remove') return;
+                    const default_picture = window.icons['profile.svg'];
+                    try {
+                        // update profile picture in the UI
+                        $el_window.find('.profile-picture').css('background-image', 'url(' + html_encode(default_picture) + ')');
+                        $('.profile-image').css('background-image', 'url(' + html_encode(default_picture) + ')');
+                        $('.profile-image').removeClass('profile-image-has-picture');
+                        // update window.user.profile to remove the picture
+                        delete window.user.profile.picture;
+                        // update profile file to remove the picture
+                        await update_profile(window.user.username, {picture: null});
+                        // hide the remove button since there's no custom picture anymore
+                        $(e.currentTarget).hide();
+                    } catch (err) {
+                        UIWindow({
+                            title: i18n('Error'),
+                            body: `<div style='padding:10px;'>${i18n('Failed to remove profile picture. Please try again.')}</div>`,
+                            buttons: [{text: i18n('OK'), value: 'ok'}],
+                            window_options: {
+                                parent_uuid: $el_window.attr('data-element_uuid'),
+                                parent_center: true,
+                            }
+                        });
+                        console.error('Profile picture removal failed:', err);
+                    }
+                }
+            });
         })
 
         $el_window.on('file_opened', async function(e){
